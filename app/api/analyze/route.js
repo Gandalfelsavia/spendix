@@ -1,12 +1,61 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { NextResponse } from "next/server"
+import { createClient } from "@supabase/supabase-js"
 
 export const maxDuration = 120
 
 const client = new Anthropic()
 
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
 export async function POST(request) {
   try {
+    // Verifica sessione utente
+    const authHeader = request.headers.get("authorization")
+    if (!authHeader) {
+      return NextResponse.json({ error: "Non autorizzato" }, { status: 401 })
+    }
+
+    const token = authHeader.replace("Bearer ", "")
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Non autorizzato" }, { status: 401 })
+    }
+
+    // Controlla profilo e limite analisi
+    const meseCorrente = new Date().toISOString().slice(0, 7) // es. "2025-01"
+
+    let { data: profilo } = await supabaseAdmin
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single()
+
+    // Reset contatore se è un nuovo mese
+    if (profilo.mese_corrente !== meseCorrente) {
+      await supabaseAdmin
+        .from("profiles")
+        .update({ analisi_questo_mese: 0, mese_corrente: meseCorrente })
+        .eq("id", user.id)
+      profilo.analisi_questo_mese = 0
+    }
+
+    // Controlla limite
+    const limiteAnalisi = profilo.piano === "pro" ? 10 : 1
+    if (profilo.analisi_questo_mese >= limiteAnalisi) {
+      return NextResponse.json({
+        error: "limite_raggiunto",
+        piano: profilo.piano,
+        analisi_fatte: profilo.analisi_questo_mese,
+        limite: limiteAnalisi
+      }, { status: 403 })
+    }
+
+    // Procedi con l'analisi
     const formData = await request.formData()
     const file = formData.get("file")
 
@@ -129,6 +178,20 @@ Regole:
         ? `La spesa principale è ${categorieOrdinate[0].nome.toLowerCase()} con ${formatEuro(categorieOrdinate[0].importo)}`
         : ""
     }
+
+    // Aggiorna contatore analisi
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        analisi_questo_mese: profilo.analisi_questo_mese + 1,
+        mese_corrente: meseCorrente
+      })
+      .eq("id", user.id)
+
+    // Salva record analisi
+    await supabaseAdmin
+      .from("analisi")
+      .insert({ user_id: user.id, periodo: dati.periodo })
 
     return NextResponse.json(risultato)
 
