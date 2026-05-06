@@ -13,7 +13,6 @@ const supabaseAdmin = createClient(
 
 export async function POST(request) {
   try {
-    // Verifica sessione utente
     const authHeader = request.headers.get("authorization")
     if (!authHeader) {
       return NextResponse.json({ error: "Non autorizzato" }, { status: 401 })
@@ -26,8 +25,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Non autorizzato" }, { status: 401 })
     }
 
-    // Controlla profilo e limite analisi
-    const meseCorrente = new Date().toISOString().slice(0, 7) // es. "2025-01"
+    const meseCorrente = new Date().toISOString().slice(0, 7)
 
     let { data: profilo } = await supabaseAdmin
       .from("profiles")
@@ -35,7 +33,6 @@ export async function POST(request) {
       .eq("id", user.id)
       .single()
 
-    // Reset contatore se è un nuovo mese
     if (profilo.mese_corrente !== meseCorrente) {
       await supabaseAdmin
         .from("profiles")
@@ -44,7 +41,6 @@ export async function POST(request) {
       profilo.analisi_questo_mese = 0
     }
 
-    // Controlla limite
     const limiteAnalisi = profilo.piano === "pro" ? 10 : 1
     if (profilo.analisi_questo_mese >= limiteAnalisi) {
       return NextResponse.json({
@@ -55,7 +51,6 @@ export async function POST(request) {
       }, { status: 403 })
     }
 
-    // Procedi con l'analisi
     const formData = await request.formData()
     const file = formData.get("file")
 
@@ -103,6 +98,8 @@ Somma tu stesso i totali per categoria leggendo ogni singola transazione.
     { "nome": "Utenze e abbonamenti", "importo": 0.00 },
     { "nome": "Salute e farmacia", "importo": 0.00 },
     { "nome": "Shopping", "importo": 0.00 },
+    { "nome": "Acquisti online", "importo": 0.00 },
+    { "nome": "Carta di credito", "importo": 0.00 },
     { "nome": "Altro", "importo": 0.00 }
   ]
 }
@@ -110,7 +107,10 @@ Somma tu stesso i totali per categoria leggendo ogni singola transazione.
 Regole:
 - tutti gli importi sono numeri decimali positivi senza simbolo euro
 - includi TUTTE le categorie anche se con importo 0
-- somma accuratamente ogni transazione nella categoria corretta`,
+- somma accuratamente ogni transazione nella categoria corretta
+- Classifica in "Acquisti online" tutti i pagamenti verso Amazon, eBay, Vinted, Zalando e qualsiasi altro ecommerce
+- Classifica in "Carta di credito" tutti gli addebiti, rimborsi o rate legati a carte di credito
+- Classifica in "Shopping" solo acquisti fisici in negozio`,
             },
           ],
         },
@@ -179,7 +179,6 @@ Regole:
         : ""
     }
 
-    // Aggiorna contatore analisi
     await supabaseAdmin
       .from("profiles")
       .update({
@@ -188,7 +187,6 @@ Regole:
       })
       .eq("id", user.id)
 
-    // Salva record analisi
     await supabaseAdmin
       .from("analisi")
       .insert({ user_id: user.id, periodo: dati.periodo })
