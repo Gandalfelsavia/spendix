@@ -38,21 +38,14 @@ export async function POST(request) {
         if (!userId) break
 
         if (tipo === "singola") {
-          // Aggiunge 1 analisi disponibile
-          const { data: profilo } = await supabaseAdmin
-            .from("profiles")
-            .select("analisi_questo_mese")
-            .eq("id", userId)
-            .single()
-
           await supabaseAdmin
             .from("profiles")
             .update({
-              analisi_questo_mese: Math.max(0, (profilo?.analisi_questo_mese || 1) - 1)
+              analisi_questo_mese: 0,
+              piano: "singola"
             })
             .eq("id", userId)
         }
-
         if (tipo === "pro") {
           await supabaseAdmin
             .from("profiles")

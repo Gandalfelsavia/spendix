@@ -41,7 +41,7 @@ export async function POST(request) {
       profilo.analisi_questo_mese = 0
     }
 
-    const limiteAnalisi = profilo.piano === "pro" ? 10 : 1
+    const limiteAnalisi = profilo.piano === "pro" ? 10 : profilo.piano === "singola" ? 1 : 1
     if (profilo.analisi_questo_mese >= limiteAnalisi) {
       return NextResponse.json({
         error: "limite_raggiunto",
