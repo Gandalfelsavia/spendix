@@ -10,6 +10,7 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false)
   const [utente, setUtente] = useState(null)
   const [controlloAuth, setControlloAuth] = useState(true)
+  const [loadingCheckout, setLoadingCheckout] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -59,6 +60,30 @@ export default function Home() {
     } catch {
       setStato("errore")
     }
+  }
+
+  async function avviaCheckout(tipo) {
+    setLoadingCheckout(tipo)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ tipo })
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert("Errore durante il pagamento. Riprova.")
+      }
+    } catch {
+      alert("Errore durante il pagamento. Riprova.")
+    }
+    setLoadingCheckout(false)
   }
 
   function reset() {
@@ -168,7 +193,7 @@ export default function Home() {
               <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <p className="text-sm text-gray-400">Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato</p>
+              <p className="text-sm text.gray-400">Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato</p>
             </div>
 
             <div className="flex items-center justify-center gap-6">
@@ -223,16 +248,24 @@ export default function Home() {
                 <p className="text-xs font-semibold text-green-600 uppercase tracking-widest mb-2">Piano Pro</p>
                 <p className="text-3xl font-bold text-gray-900 mb-1">€5.99<span className="text-base font-normal text-gray-400">/mese</span></p>
                 <p className="text-sm text-gray-500 mb-4">Fino a 10 analisi al mese · Disdici quando vuoi</p>
-                <button className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-xl transition-colors">
-                  Abbonati ora →
+                <button
+                  onClick={() => avviaCheckout("pro")}
+                  disabled={loadingCheckout === "pro"}
+                  className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {loadingCheckout === "pro" ? "Attendere..." : "Abbonati ora →"}
                 </button>
               </div>
               <div className="border border-gray-200 rounded-2xl p-6 text-left">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Analisi singola</p>
                 <p className="text-3xl font-bold text-gray-900 mb-1">€2.99</p>
                 <p className="text-sm text-gray-500 mb-4">Una analisi · Nessun abbonamento</p>
-                <button className="w-full border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors">
-                  Acquista →
+                <button
+                  onClick={() => avviaCheckout("singola")}
+                  disabled={loadingCheckout === "singola"}
+                  className="w-full border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {loadingCheckout === "singola" ? "Attendere..." : "Acquista →"}
                 </button>
               </div>
             </div>
@@ -320,17 +353,19 @@ export default function Home() {
         )}
 
       </div>
+
       {/* Footer */}
-<footer className="border-t border-gray-100 mt-16 py-8">
-  <div className="max-w-2xl mx-auto px-6 text-center">
-    <p className="text-xs text-gray-400">
-      Flowts è un marchio di <span className="font-medium">Savinvest SRL</span> — P.IVA e C.F. 11338010017
-    </p>
-    <p className="text-xs text-gray-400 mt-1">
-      Flowts mostra i tuoi dati di spesa in modo chiaro. Non fornisce consulenza finanziaria, fiscale o di investimento.
-    </p>
-  </div>
-</footer>
+      <footer className="border-t border-gray-100 mt-16 py-8">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <p className="text-xs text-gray-400">
+            Flowts è un marchio di <span className="font-medium">Savinvest SRL</span> — P.IVA e C.F. 11338010017
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Flowts mostra i tuoi dati di spesa in modo chiaro. Non fornisce consulenza finanziaria, fiscale o di investimento.
+          </p>
+        </div>
+      </footer>
+
     </main>
   )
 }
