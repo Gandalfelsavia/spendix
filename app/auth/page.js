@@ -23,12 +23,14 @@ export default function Auth() {
         window.location.href = "/"
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) {
-        setErrore("Errore durante la registrazione. Riprova.")
-      } else {
-        setMessaggio("Controlla la tua email per confermare la registrazione!")
-      }
+      const { data, error } = await supabase.auth.signUp({ email, password })
+if (error) {
+  setErrore(error.message)
+} else if (data?.user) {
+  window.location.href = "/"
+} else {
+  setMessaggio("Controlla la tua email per confermare la registrazione!")
+}
     }
     setCaricamento(false)
   }
