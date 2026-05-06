@@ -112,6 +112,17 @@ export default function Auth() {
           Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato
         </p>
       </div>
+    {/* Footer */}
+    <footer className="border-t border-gray-100 mt-16 py-8">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <p className="text-xs text-gray-400">
+            Flowts è un marchio di <span className="font-medium">Savinvest SRL</span> — P.IVA e C.F. 11338010017
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Flowts mostra i tuoi dati di spesa in modo chiaro. Non fornisce consulenza finanziaria, fiscale o di investimento.
+          </p>
+        </div>
+      </footer>
     </main>
   )
 }
