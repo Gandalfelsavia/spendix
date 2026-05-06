@@ -37,7 +37,7 @@ export default function Auth() {
     <main className="min-h-screen bg-white">
       <nav className="bg-green-700 px-8 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <img src="/Logo.png" alt="Spendix" className="h-30 w-auto" />
+          <img src="/Logo.png" alt="Flowts" className="h-30 w-auto" />
         </div>
         <span className="text-green-200 text-sm">Analisi estratti conto</span>
       </nav>
@@ -109,7 +109,7 @@ export default function Auth() {
         </div>
 
         <p className="text-xs text-gray-400 text-center mt-8">
-          Noi di Spendix ci teniamo alla tua privacy — nessun dato verrà conservato
+          Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato
         </p>
       </div>
     </main>

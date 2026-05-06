@@ -81,7 +81,7 @@ export default function Home() {
       {/* Navbar */}
       <nav className="bg-green-700 px-8 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <img src="/Logo.png" alt="Spendix" className="h-30 w-auto" />
+          <img src="/Logo.png" alt="Flowts" className="h-30 w-auto" />
         </div>
         <div className="flex items-center gap-4">
           <span className="text-green-200 text-sm hidden sm:block">{utente?.email}</span>
@@ -168,7 +168,7 @@ export default function Home() {
               <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <p className="text-sm text-gray-400">Noi di Spendix ci teniamo alla tua privacy — nessun dato verrà conservato</p>
+              <p className="text-sm text-gray-400">Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato</p>
             </div>
 
             <div className="flex items-center justify-center gap-6">
@@ -201,7 +201,8 @@ export default function Home() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Qualcosa è andato storto</h2>
-            <p className="text-gray-400 mb-6">Assicurati che il file sia un estratto conto in PDF valido.</p>
+            <p className="text-gray-400 mb-4">Assicurati che il file sia un estratto conto in PDF valido.</p>
+            <p className="text-gray-400 mb-6 text-sm">La tua analisi non è stata conteggiata — puoi riprovare.</p>
             <button onClick={reset} className="bg-green-700 text-white py-3 px-8 rounded-xl font-medium hover:bg-green-800 transition-colors">
               Riprova
             </button>
@@ -306,7 +307,7 @@ export default function Home() {
             </div>
 
             <p className="text-xs text-gray-400 text-center mb-6">
-              Spendix mostra i tuoi dati di spesa in modo chiaro. Non fornisce consulenza finanziaria, fiscale o di investimento.
+              Flowts mostra i tuoi dati di spesa in modo chiaro. Non fornisce consulenza finanziaria, fiscale o di investimento.
             </p>
 
             <button

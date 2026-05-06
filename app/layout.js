@@ -8,8 +8,8 @@ const montserrat = Montserrat({
 })
 
 export const metadata = {
-  title: "Spendix — Scopri dove finiscono i tuoi soldi",
-  description: "Analisi estratti conto bancari in 30 secondi. Carica il PDF e scopri subito dove vanno i tuoi soldi.",
+  title: "Flowts — Scopri dove finiscono i tuoi soldi",
+  description: "Analisi estratti conto bancari in 1 minuto. Carica il PDF e scopri subito dove vanno i tuoi soldi.",
 }
 
 export default function RootLayout({ children }) {
