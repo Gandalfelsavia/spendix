@@ -101,6 +101,9 @@ Somma tu stesso i totali per categoria leggendo ogni singola transazione.
     { "nome": "Acquisti online", "importo": 0.00 },
     { "nome": "Carta di credito", "importo": 0.00 },
     { "nome": "Altro", "importo": 0.00 }
+  ],
+  "abbonamenti": [
+    { "nome": "es. Netflix", "importo": 0.00, "frequenza": "mensile o annuale" }
   ]
 }
 
@@ -110,13 +113,8 @@ Regole:
 - somma accuratamente ogni transazione nella categoria corretta
 - Classifica in "Acquisti online" tutti i pagamenti verso Amazon, eBay, Vinted, Zalando e qualsiasi altro ecommerce
 - Classifica in "Carta di credito" tutti gli addebiti, rimborsi o rate legati a carte di credito
-- Classifica in "Shopping" solo acquisti fisici in negozio`,
-            },
-          ],
-        },
-      ],
-    })
-
+- Classifica in "Shopping" solo acquisti fisici in negozio
+- In "abbonamenti" includi TUTTE le uscite ricorrenti: streaming, palestre, assicurazioni, software, servizi digitali, utenze fisse. Se non ci sono abbonamenti restituisci un array vuoto []`,
     const testoGrezzo = message.content[0].text
       .replace(/```json/g, "")
       .replace(/```/g, "")

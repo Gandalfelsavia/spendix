@@ -37,6 +37,13 @@ export default function Home() {
     if (dropped && dropped.type === "application/pdf") setFile(dropped)
   }
 
+  function formatEuro(importo) {
+    return new Intl.NumberFormat("it-IT", {
+      style: "currency",
+      currency: "EUR"
+    }).format(importo)
+  }
+
   async function avviaAnalisi() {
     if (!file) return
     setStato("caricamento")
@@ -193,7 +200,7 @@ export default function Home() {
               <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <p className="text-sm text.gray-400">Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato</p>
+              <p className="text-sm text-gray-400">Noi di Flowts ci teniamo alla tua privacy — nessun dato verrà conservato</p>
             </div>
 
             <div className="flex items-center justify-center gap-6">
@@ -282,6 +289,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Il tuo bilancio</h2>
             </div>
 
+            {/* KPI */}
             <div className="grid grid-cols-3 gap-4 mb-10">
               <div className="bg-gray-50 rounded-2xl p-5">
                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-2">Entrate</p>
@@ -299,6 +307,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Top 3 */}
             <div className="mb-10">
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Le 3 spese principali</h3>
               <div className="flex flex-col gap-3">
@@ -317,6 +326,7 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Tutte le categorie */}
             <div className="mb-10">
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">Tutte le categorie</h3>
               <div className="bg-gray-50 rounded-2xl overflow-hidden">
@@ -333,6 +343,43 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Abbonamenti nascosti */}
+            {risultati.abbonamenti && risultati.abbonamenti.length > 0 && (
+              <div className="mb-10">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
+                  Abbonamenti rilevati
+                </h3>
+                <div className="bg-gray-50 rounded-2xl overflow-hidden">
+                  {risultati.abbonamenti.map((ab, i) => (
+                    <div key={i} className={`flex items-center justify-between px-5 py-3.5 ${i !== 0 ? "border-t border-gray-100" : ""}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{ab.nome}</p>
+                          <p className="text-xs text-gray-400">{ab.frequenza}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-bold text-gray-900">{formatEuro(ab.importo)}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mt-3">
+                  <p className="text-xs text-orange-600 font-semibold mb-1">Totale abbonamenti mensili</p>
+                  <p className="text-lg font-bold text-orange-700">
+                    {formatEuro(risultati.abbonamenti.reduce((sum, ab) => sum + ab.importo, 0))}
+                    <span className="text-sm font-normal text-orange-400 ml-1">
+                      · {formatEuro(risultati.abbonamenti.reduce((sum, ab) => sum + ab.importo, 0) * 12)}/anno
+                    </span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* In evidenza */}
             <div className="border border-green-100 bg-green-50 rounded-2xl p-6 mb-6">
               <p className="text-xs font-semibold text-green-600 uppercase tracking-widest mb-2">In evidenza</p>
               <p className="text-gray-700 leading-relaxed">{risultati.evidenza}</p>
