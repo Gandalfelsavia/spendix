@@ -61,60 +61,77 @@ export async function POST(request) {
     const bytes = await file.arrayBuffer()
     const base64 = Buffer.from(bytes).toString("base64")
 
-    const message = await client.messages.create({
-      model: "claude-opus-4-6",
-      max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: [
+    const prompt = "Analizza questo estratto conto bancario italiano. " +
+      "Restituisci SOLO un JSON valido, senza backtick, senza testo aggiuntivo. " +
+      "Somma tu stesso i totali per categoria leggendo ogni singola transazione. " +
+      "Il JSON deve avere questa struttura: " +
+      "{" +
+      "\"periodo\": \"mese e anno es. Gennaio 2025\"," +
+      "\"totale_entrate\": 0.00," +
+      "\"totale_uscite\": 0.00," +
+      "\"voci_entrate\": [{\"descrizione\": \"es. Stipendio\", \"importo\": 0.00}]," +
+      "\"categorie_uscite\": [" +
+      "{\"nome\": \"Spesa alimentare\", \"importo\": 0.00}," +
+      "{\"nome\": \"Ristoranti e bar\", \"importo\": 0.00}," +
+      "{\"nome\": \"Benzina e trasporti\", \"importo\": 0.00}," +
+      "{\"nome\": \"Mutuo affitto e finanziamenti\", \"importo\": 0.00}," +
+      "{\"nome\": \"Costi bancari\", \"importo\": 0.00}," +
+      "{\"nome\": \"Utenze e abbonamenti\", \"importo\": 0.00}," +
+      "{\"nome\": \"Salute e farmacia\", \"importo\": 0.00}," +
+      "{\"nome\": \"Shopping\", \"importo\": 0.00}," +
+      "{\"nome\": \"Acquisti online\", \"importo\": 0.00}," +
+      "{\"nome\": \"Carta di credito\", \"importo\": 0.00}," +
+      "{\"nome\": \"Altro\", \"importo\": 0.00}" +
+      "]," +
+      "\"abbonamenti\": [{\"nome\": \"es. Netflix\", \"importo\": 0.00, \"frequenza\": \"mensile o annuale\"}]" +
+      "} " +
+      "Regole: " +
+      "tutti gli importi sono numeri decimali positivi senza simbolo euro. " +
+      "Includi TUTTE le categorie anche se con importo 0. " +
+      "Somma accuratamente ogni transazione nella categoria corretta. " +
+      "Classifica in Acquisti online tutti i pagamenti verso Amazon, eBay, Vinted, Zalando e qualsiasi altro ecommerce. " +
+      "Classifica in Carta di credito tutti gli addebiti, rimborsi o rate legati a carte di credito. " +
+      "Classifica in Shopping solo acquisti fisici in negozio. " +
+      "In abbonamenti includi TUTTE le uscite ricorrenti: streaming, palestre, assicurazioni, software, servizi digitali, utenze fisse. Se non ci sono abbonamenti restituisci un array vuoto."
+
+    let message
+    let tentativi = 0
+    while (tentativi < 3) {
+      try {
+        message = await client.messages.create({
+          model: "claude-opus-4-6",
+          max_tokens: 2048,
+          messages: [
             {
-              type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: base64,
-              },
+              role: "user",
+              content: [
+                {
+                  type: "document",
+                  source: {
+                    type: "base64",
+                    media_type: "application/pdf",
+                    data: base64,
+                  },
+                },
+                {
+                  type: "text",
+                  text: prompt,
+                },
+              ],
             },
-            {
-              type: "text",
-              text: `Analizza questo estratto conto bancario italiano.
-Restituisci SOLO un JSON valido, senza backtick, senza testo aggiuntivo.
-Somma tu stesso i totali per categoria leggendo ogni singola transazione.
+          ],
+        })
+        break
+      } catch (err) {
+        if (err.status === 529 && tentativi < 2) {
+          tentativi++
+          await new Promise(r => setTimeout(r, 3000))
+        } else {
+          throw err
+        }
+      }
+    }
 
-{
-  "periodo": "mese e anno es. Gennaio 2025",
-  "totale_entrate": 0.00,
-  "totale_uscite": 0.00,
-  "voci_entrate": [
-    { "descrizione": "es. Stipendio", "importo": 0.00 }
-  ],
-  "categorie_uscite": [
-    { "nome": "Spesa alimentare", "importo": 0.00 },
-    { "nome": "Ristoranti e bar", "importo": 0.00 },
-    { "nome": "Benzina e trasporti", "importo": 0.00 },
-    { "nome": "Mutuo affitto e finanziamenti", "importo": 0.00 },
-    { "nome": "Costi bancari", "importo": 0.00 },
-    { "nome": "Utenze e abbonamenti", "importo": 0.00 },
-    { "nome": "Salute e farmacia", "importo": 0.00 },
-    { "nome": "Shopping", "importo": 0.00 },
-    { "nome": "Acquisti online", "importo": 0.00 },
-    { "nome": "Carta di credito", "importo": 0.00 },
-    { "nome": "Altro", "importo": 0.00 }
-  ],
-  "abbonamenti": [
-    { "nome": "es. Netflix", "importo": 0.00, "frequenza": "mensile o annuale" }
-  ]
-}
-
-Regole:
-- tutti gli importi sono numeri decimali positivi senza simbolo euro
-- includi TUTTE le categorie anche se con importo 0
-- somma accuratamente ogni transazione nella categoria corretta
-- Classifica in "Acquisti online" tutti i pagamenti verso Amazon, eBay, Vinted, Zalando e qualsiasi altro ecommerce
-- Classifica in "Carta di credito" tutti gli addebiti, rimborsi o rate legati a carte di credito
-- Classifica in "Shopping" solo acquisti fisici in negozio
-- In "abbonamenti" includi TUTTE le uscite ricorrenti: streaming, palestre, assicurazioni, software, servizi digitali, utenze fisse. Se non ci sono abbonamenti restituisci un array vuoto []`,
     const testoGrezzo = message.content[0].text
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -142,7 +159,7 @@ Regole:
       .map(cat => ({
         categoria: cat.nome,
         importo: formatEuro(cat.importo),
-        messaggio: `Hai speso ${formatEuro(cat.importo)} in ${cat.nome.toLowerCase()}`
+        messaggio: "Hai speso " + formatEuro(cat.importo) + " in " + cat.nome.toLowerCase()
       }))
 
     const risultato = {
@@ -169,12 +186,17 @@ Regole:
         importo: formatEuro(Math.abs(bilancio)),
         stato: bilancio >= 0 ? "positivo" : "negativo",
         messaggio: bilancio >= 0
-          ? `Hai risparmiato ${formatEuro(bilancio)} questo mese`
-          : `Hai speso ${formatEuro(Math.abs(bilancio))} più di quanto hai guadagnato`
+          ? "Hai risparmiato " + formatEuro(bilancio) + " questo mese"
+          : "Hai speso " + formatEuro(Math.abs(bilancio)) + " piu di quanto hai guadagnato"
       },
       evidenza: categorieOrdinate[0]?.importo > 0
-        ? `La spesa principale è ${categorieOrdinate[0].nome.toLowerCase()} con ${formatEuro(categorieOrdinate[0].importo)}`
-        : ""
+        ? "La spesa principale e " + categorieOrdinate[0].nome.toLowerCase() + " con " + formatEuro(categorieOrdinate[0].importo)
+        : "",
+      abbonamenti: (dati.abbonamenti || []).map(ab => ({
+        nome: ab.nome,
+        importo: ab.importo,
+        frequenza: ab.frequenza
+      }))
     }
 
     await supabaseAdmin
